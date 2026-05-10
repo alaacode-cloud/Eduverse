@@ -1,5 +1,4 @@
 import { MongooseModule, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import type { Date } from 'mongoose';
 import { StatusEnum, UserRolesEnum,GenderEnum } from 'src/common/utiles/enum';
 
 
@@ -15,19 +14,17 @@ export class User {
   @Prop({ type: String ,required: true , unique: true})//UNI Email
   email: string;
   
-  @Prop({ type: String ,required: true , unique: true })
-  recoveryEmail: string;
 
   @Prop({type: String, required: true}) // select: false يعني مش بترجع في أي query عادية
   password: string;
-
-  @Prop({type: String,required: true})
+  
+  @Prop({type: String})
   phone: string;
   
-  @Prop({type: String,required: true,enum:GenderEnum}) 
+  @Prop({type: String,enum:GenderEnum}) 
   gender: GenderEnum;
 
-  @Prop({type: Date,required: true}) 
+  @Prop({type: Date}) 
   dateOfBirth: Date; 
 
   @Prop({ type: String, enum: StatusEnum ,default: StatusEnum.INACTIVE })
@@ -36,7 +33,7 @@ export class User {
   @Prop({ type: String, default: "CS" })
   department: string; 
   
-  @Prop({ type: String, enum: UserRolesEnum })
+  @Prop({ type: String, enum: UserRolesEnum,required: true })
   role: UserRolesEnum;
 
   @Prop({

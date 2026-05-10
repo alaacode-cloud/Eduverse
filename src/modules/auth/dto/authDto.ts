@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsString, IsStrongPassword, Matches, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsNumber, IsString, IsStrongPassword, Matches, MinLength } from 'class-validator';
 import { GenderEnum } from 'src/common/utiles/enum';
 
 export class SignInDTO {
@@ -16,7 +16,36 @@ export class SignInDTO {
   password: string;
 }
 
-export class SignUpDto {
+
+export class UserSignUpDto {
+  @IsString()
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+  
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(3)
+  fullName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^(010|011|012|015)[0-9]{8}$/)//!test
+  phone: string;
+
+  @IsString()
+  @IsNotEmpty()
+  // @Matches(...) 
+  password: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsEnum(GenderEnum)
+  gender: GenderEnum;
+}
+
+export class StudentSignUpDto {
   @IsString()
   @IsNotEmpty()
   @IsEmail()
@@ -24,9 +53,12 @@ export class SignUpDto {
   
   @IsString()
   @IsNotEmpty()
-  @IsEmail()
-  recoveryEmail: string;
-  
+  academicId: string; // #ST-2022-1
+
+  @IsNumber()
+  @IsNotEmpty()
+  currentYear: number;
+
   @IsString()
   @IsNotEmpty()
   @MinLength(3)
@@ -69,14 +101,14 @@ export class forgotPasswordDto {
     @IsString()
     @IsNotEmpty()
     @IsEmail()
-    recoveryEmail:string;
+    email:string;
 }   
 
 export class resetPasswordDto {
     @IsString()
     @IsNotEmpty()
     @IsEmail()
-    recoveryEmail:string;
+    email:string;
     
     @IsString()
     @IsNotEmpty()

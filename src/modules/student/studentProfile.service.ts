@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { StudentProfileRepository } from 'src/models/studentProfile/studentProfile.repository';
-import {  PopulatedStudentProfile } from 'src/common/interfaces/IstudentProfile';
+import { PopulatedStudentProfile } from 'src/common/interfaces/IstudentProfile';
 import { raw } from '@nestjs/mongoose';
 @Injectable()
 export class StudentProfileService {
   constructor(
     private readonly StudentProfileRepository: StudentProfileRepository,
-  ) {}
+  ) { }
 
   async getMyProfile(userId: string) {
     // 1. جلب الداتا المتداخلة من الريبو
@@ -23,18 +23,18 @@ export class StudentProfileService {
       // من StudentProfile
       id: rawProfile._id, // ID من اليوزر عشان نضمن التوافق
       academicId: rawProfile.academicId,
-      department: rawProfile.department,
       academicYear: rawProfile.currentYear,
       gpa: rawProfile.gpa,
       completedCoursesCount: rawProfile.completedCoursesCount,
       totalCreditHours: rawProfile.totalCreditHours,
       currentEnrolledCourses: rawProfile.currentEnrolledCourses,
-        // من User
+      // من User
       fullName: profile.userId.fullName,
       email: profile.userId.email,
       phone: profile.userId.phone,
       gender: profile.userId.gender,
-      dateOfBirth: profile.userId.dateOfBirth
+      dateOfBirth: profile.userId.dateOfBirth,
+      department: profile.userId.department
     };
 
     return formattedProfile;

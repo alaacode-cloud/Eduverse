@@ -14,8 +14,5 @@ export class UserRepository extends AbstractRepository<User> {
     return await this.findOne({ filter: { email } }); 
   }
 
-  public async findByRecoveryEmail(recoveryEmail: string) {
-    // نفس الكلام هنا، مش محتاج نكررها
-    return await this.findOne({ filter: { recoveryEmail } }); 
-  }
+
 }

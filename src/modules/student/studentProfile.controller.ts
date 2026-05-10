@@ -7,15 +7,15 @@ import { StudentProfileService } from './studentProfile.service';
 export class StudentProfileController {
   constructor(private readonly studentProfileService: StudentProfileService) {}
 
-  @Get('me')
-  @HttpCode(HttpStatus.OK)
-  async getMyProfile(@Req() req: any) {
-    // 
-    // req.user ده بييجي من الـ JWT Strategy
-    // لما الـ Token btتفك، بتطلع الـ payload فيها الـ userId
-    // (ملاحظة: لو في الـ Strategy استخدمت sub، هتبقى req.user.sub. لو استخدمت _id هتبقى req.user._id)
-    const userId = req.user._id; 
+  // @Get('me')
+  // @HttpCode(HttpStatus.OK)
+  // async getMyProfile(@Req() req: any) {
+  //   // 
+  //   // req.user ده بييجي من الـ JWT Strategy
+  //   // لما الـ Token btتفك، بتطلع الـ payload فيها الـ userId
+  //   // (ملاحظة: لو في الـ Strategy استخدمت sub، هتبقى req.user.sub. لو استخدمت _id هتبقى req.user._id)
+  //   const userId = req.user._id; 
 
-    return this.studentProfileService.getMyProfile(userId);
-  }
+  //   return this.studentProfileService.getMyProfile(userId);
+  // }
 }

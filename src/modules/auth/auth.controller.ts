@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Headers } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ConfirmEmailDto, forgotPasswordDto, ResendOtpDto, resetPasswordDto, SignInDTO, SignUpDto } from './dto/authDto';
+import { ConfirmEmailDto, forgotPasswordDto, ResendOtpDto, resetPasswordDto, SignInDTO, StudentSignUpDto, UserSignUpDto } from './dto/authDto';
 import { Throttle } from "@nestjs/throttler";
 
 
@@ -12,24 +12,30 @@ export class AuthController {
     private readonly authService: AuthService,
   ) {}
 
-  @Post('signup')
-  async signup(@Body() signUpDTO: SignUpDto) {
-    const user = await this.authService.signUp(signUpDTO)
+  // @Post('User-signup')
+  // async usersignup(@Body() signUpDTO: UserSignUpDto) {
+  //   const user = await this.authService.usersignUp(signUpDTO)
+  //   return { message: 'Account created successfully, please confirm your email', data: user }
+  // }
+    @Post('Student-signup')
+    async studentsignup(@Body() signUpDTO: StudentSignUpDto) {
+    const user = await this.authService.studentsignUp(signUpDTO)
     return { message: 'Account created successfully, please confirm your email', data: user }
-  }
-   @Post('signin')
+    }
+
+    @Post('signin')
     async signIn(@Body() signInDTO: SignInDTO) {
       const { accessToken, refreshToken } = await this.authService.signIn(signInDTO)
       return ({ accessToken ,refreshToken})
     }
     
-  @Post('confirm-email')
+    @Post('confirm-email')
     async confirmEmail(@Body() confirmEmailDto:ConfirmEmailDto) {
         const result = await this.authService.confirmEmail(confirmEmailDto.email,confirmEmailDto.otp)
         return {message:'Email confirmed successfully',data:result}
     }
 
-  @Throttle({ default: { limit: 3, ttl: 60 } }) // max 3 requests per 60 seconds
+    @Throttle({ default: { limit: 3, ttl: 60 } }) // max 3 requests per 60 seconds
     @Post('resend-otp')
     async resendOtp(@Body() resendOtpDto:ResendOtpDto) {
         await this.authService.resendOtp(resendOtpDto.email)
@@ -45,14 +51,14 @@ export class AuthController {
 
     @Post('forgot-password')
     async forgotPassword(@Body() body: forgotPasswordDto) {
-       await this.authService.forgotPassword(body.recoveryEmail)
+       await this.authService.forgotPassword(body.email)
        return { message: 'OTP sent to your email' }
     }
 
     @Post('reset-password')
     async resetPassword(@Body() resetPasswordDto: resetPasswordDto) {
-       const { recoveryEmail, otp, newPassword } = resetPasswordDto
-         await this.authService.resetPassword(recoveryEmail, otp, newPassword)
+       const { email, otp, newPassword } = resetPasswordDto
+         await this.authService.resetPassword(email, otp, newPassword)
          return { message: 'Password reset successfully, you can login now' }
     }
 

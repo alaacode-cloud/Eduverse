@@ -1,6 +1,6 @@
 import { UserRepository } from './../../models/user/user.repository';
 import { Injectable ,ConflictException,InternalServerErrorException, UnauthorizedException, NotFoundException, BadRequestException} from '@nestjs/common';
-import { SignInDTO, SignUpDto } from './dto/authDto';
+import { SignInDTO, UserSignUpDto,StudentSignUpDto } from './dto/authDto';
 import { compare, generateOTP, hashPassword } from 'src/common/utiles/helpers';
 import { User } from 'src/models';
 import { sendEmail } from 'src/common/utiles/email.utils';
@@ -13,7 +13,44 @@ export class AuthService {
     private readonly tokenService: TokenService,
   ) {}
 
-  async signUp(signUpDto: SignUpDto) {
+  // async usersignUp(signUpDto: UserSignUpDto) {
+  //   const email = await this.userRepository.findByEmail(signUpDto.email)
+  //   if (email) {
+  //     throw new ConflictException('Email already exists, please use another email')
+  //   }
+    
+  //   const otp = generateOTP(6)
+    
+  //   const emailSent = await sendEmail({
+  //     to: signUpDto.email,
+  //     from:'"Eduverse System" <no-reply@eduverse.com>',
+  //     subject: 'Email Confirmation',
+  //     html: `<h1>Welcome ${signUpDto.fullName}</h1><p>Please confirm your email using this OTP: ${otp}</p>`
+  //   })
+  //   if (!emailSent) {
+  //     throw new InternalServerErrorException('Failed to send email, please try again')
+  //   }
+    
+  //    const createdUser = await this.userRepository.create({
+  //     fullName: signUpDto.fullName,
+  //     email: signUpDto.email,
+  //     password: await  hashPassword(signUpDto.password),
+  //     phone : signUpDto.phone,
+  //     gender: signUpDto.gender,
+  //     isVerified: false,
+  //     emailOtp: {
+  //       code: otp,
+  //       expiresAt: new Date(Date.now() + 10 * 60 * 1000) // OTP expires in 10 minutes
+  //     }
+  //   })
+  //   const {  emailOtp, ...Obj } = JSON.parse(
+  //     JSON.stringify(createdUser),
+  //   );
+
+  //   return Obj as User;
+  // }
+  
+ async studentsignUp(signUpDto: StudentSignUpDto) {
     const email = await this.userRepository.findByEmail(signUpDto.email)
     if (email) {
       throw new ConflictException('Email already exists, please use another email')
@@ -34,7 +71,8 @@ export class AuthService {
      const createdUser = await this.userRepository.create({
       fullName: signUpDto.fullName,
       email: signUpDto.email,
-      recoveryEmail: signUpDto.recoveryEmail,
+      academicId: signUpDto.academicId,
+      currentYear: signUpDto.currentYear,
       password: await  hashPassword(signUpDto.password),
       phone : signUpDto.phone,
       gender: signUpDto.gender,
@@ -50,6 +88,7 @@ export class AuthService {
 
     return Obj as User;
   }
+
 
   async signIn(signInDTO: SignInDTO) {
 
@@ -163,9 +202,9 @@ export class AuthService {
      return this.tokenService.generateAuthTokens(user);
   }
 
-  async forgotPassword(recoveryEmail: string) {
+  async forgotPassword(email: string) {
 
-     const user = await this.userRepository.findByRecoveryEmail(recoveryEmail)
+     const user = await this.userRepository.findByEmail(email)
     
      if (!user) {
        throw new NotFoundException('User not found')
@@ -174,7 +213,7 @@ export class AuthService {
      const otp = generateOTP(6)
     
      const emailSent = await sendEmail({
-       to: user.recoveryEmail,
+       to: user.email,
        from: '"Eduverse System" <no-reply@eduverse.com>',
        subject: 'Reset Password',
        html: `<h1>Hello ${user.fullName}</h1> 
@@ -187,7 +226,7 @@ export class AuthService {
      }
 
      await this.userRepository.Update({
-       filter: { recoveryEmail: recoveryEmail },
+       filter: { email: email },
        update: {
          emailOtp: {
            code: otp,
@@ -198,8 +237,8 @@ export class AuthService {
 
   }
 
-  async resetPassword(recoveryEmail: string, otp: string, newPassword: string) {
-    const user = await this.userRepository.findByRecoveryEmail(recoveryEmail)
+  async resetPassword(email: string, otp: string, newPassword: string) {
+    const user = await this.userRepository.findByEmail(email)
     if (!user) {
       throw new NotFoundException('User not found')
     }
@@ -212,7 +251,7 @@ export class AuthService {
       throw new BadRequestException('Your new password cannot be the same as the old password')
     }
     await this.userRepository.Update({
-      filter: { recoveryEmail: recoveryEmail },
+      filter: { email: email },
       update: {
         $unset: {
           emailOtp: ""
