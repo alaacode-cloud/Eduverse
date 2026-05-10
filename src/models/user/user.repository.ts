@@ -1,0 +1,21 @@
+import { User } from './user.schema';
+import { Model } from 'mongoose';
+import { AbstractRepository } from '../abstract.repository';
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+
+@Injectable()
+export class UserRepository extends AbstractRepository<User> {
+  constructor(@InjectModel(User.name) userModel: Model<User>) {
+    super(userModel);
+  }
+  public async findByEmail(email: string) {
+    // this.findOne بتعمل الـ lean().exec() ورائها في الـ Abstract
+    return await this.findOne({ filter: { email } }); 
+  }
+
+  public async findByRecoveryEmail(recoveryEmail: string) {
+    // نفس الكلام هنا، مش محتاج نكررها
+    return await this.findOne({ filter: { recoveryEmail } }); 
+  }
+}
