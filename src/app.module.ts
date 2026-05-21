@@ -1,10 +1,14 @@
-import devConfig from './config/dev.config';
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import devConfig from './config/dev.config';
 import { AuthModule } from './modules/auth/auth.module';
+import { CourseModule } from './modules/course/course.module';
+import { GradeModule } from './modules/grade/grade.module';
+import { StudentModule } from './modules/student/student.module';
+
 
 
 @Module({
@@ -20,7 +24,13 @@ import { AuthModule } from './modules/auth/auth.module';
       }),
     }),
 
-  AuthModule
+  AuthModule,
+
+  GradeModule,
+
+  CourseModule,
+
+  StudentModule
  
     ],
   controllers: [AppController],

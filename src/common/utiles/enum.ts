@@ -3,21 +3,16 @@ export enum StatusEnum {
   INACTIVE = 'INACTIVE',
 }
 
-export enum SemesterEnum {
-  FIRST = 1,
-  SECOND = 2,
-  SUMMER = 3,
-}
 
 export enum StudentStatusEnum {
   ENROLLED = 'ENROLLED',
   DROPPED = 'DROPPED',
 }
 export enum AcademicYearEnum {
-  YEAR_1 = 1,
-  YEAR_2 = 2,
-  YEAR_3 = 3,
-  YEAR_4 = 4,
+  YEAR_1 = '1',
+  YEAR_2 = '2',
+  YEAR_3 = '3',
+  YEAR_4 = '4',
 }
 
 export enum UserRolesEnum {
@@ -27,18 +22,18 @@ export enum UserRolesEnum {
 }
 
 export enum GradeEnum {
-  Aplus = 'A+',
+    A_PLUS = 'A+',
   A = 'A',
-  Amins = 'A-',
-  Bplus = 'B+',
+  A_MINUS = 'A-',
+  B_PLUS = 'B+',
   B = 'B',
-  Bmins = 'B-',
-  Cplus = 'C+',
+  B_MINUS = 'B-',
+  C_PLUS = 'C+',
   C = 'C',
-  Cmins = 'C-',
-  Dplus = 'D+',
+  C_MINUS = 'C-',
+  D_PLUS = 'D+',
   D = 'D',
-  Dmins = 'D-',
+  D_MINUS = 'D-',
   F = 'F',
 }
 
@@ -53,7 +48,7 @@ export enum SummerReason {
   NON_REGISTRATION = 'NON_REGISTRATION', // لو ما سجلش فيها أصلاً (مفيش خصم)
 }
 
-export enum TermeEnum {
+export enum SemesterEnum {
   First  = 'FIRST',
   Second = 'SECOND',
   Summer = 'SUMMER',

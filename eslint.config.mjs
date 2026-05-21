@@ -41,8 +41,8 @@ export default tseslint.config(
       '@typescript-eslint/await-thenable': 'off',
       '@typescript-eslint/explicit-this-parameter': 'off',
       'brace-style': 'off',
-      'no-unused-vars': 'warn',
-      '@typescript-eslint/no-unused-vars': 'off',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': ['warn', { 'argsIgnorePattern': '^_', 'varsIgnorePattern': '^_' }],
     },
   },
   

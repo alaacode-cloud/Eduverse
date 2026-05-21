@@ -22,6 +22,17 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "strictPropertyInitialization": false,
+    "paths": {
+      "@utils/*": ["src/common/utiles/*"],
+      "@interfaces/*": ["src/common/interfaces/*"],
+      "@interfaces": ["src/common/interfaces/index.ts"],
+      "@models/*": ["src/models/*"],
+      "@services/*": ["src/common/service/*"],
+      "@controllers/*": ["src/controllers/*"],
+      "@guards/*": ["src/common/guards/*"],
+      "@decorators/*": ["src/common/decorators/*"]
+    }
+      
   },
     "include": [
     "src/**/*"

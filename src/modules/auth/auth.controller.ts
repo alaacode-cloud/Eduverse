@@ -1,7 +1,8 @@
 import { Controller, Post, Body, Headers } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { ConfirmEmailDto, forgotPasswordDto, ResendOtpDto, resetPasswordDto, SignInDTO, StudentSignUpDto, UserSignUpDto } from './dto/authDto';
+import { ConfirmEmailDto, CreateUserDto, forgotPasswordDto, ResendOtpDto, resetPasswordDto, SignInDTO } from './dto/authDto';
 import { Throttle } from "@nestjs/throttler";
+import { AuthService } from './auth.service';
+
 
 
 
@@ -12,18 +13,12 @@ export class AuthController {
     private readonly authService: AuthService,
   ) {}
 
-  // @Post('User-signup')
-  // async usersignup(@Body() signUpDTO: UserSignUpDto) {
-  //   const user = await this.authService.usersignUp(signUpDTO)
-  //   return { message: 'Account created successfully, please confirm your email', data: user }
-  // }
-    @Post('Student-signup')
-    async studentsignup(@Body() signUpDTO: StudentSignUpDto) {
-    const user = await this.authService.studentsignUp(signUpDTO)
-    return { message: 'Account created successfully, please confirm your email', data: user }
-    }
-
-    @Post('signin')
+    @Post('create-account')
+    async createUser(@Body() createUserDto: CreateUserDto) {
+        return this.authService.createUser(createUserDto);
+      }
+    
+    @Post('log-in')
     async signIn(@Body() signInDTO: SignInDTO) {
       const { accessToken, refreshToken } = await this.authService.signIn(signInDTO)
       return ({ accessToken ,refreshToken})

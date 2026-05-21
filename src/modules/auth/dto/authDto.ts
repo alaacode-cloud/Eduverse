@@ -1,5 +1,5 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsNumber, IsString, IsStrongPassword, Matches, MinLength } from 'class-validator';
-import { GenderEnum } from 'src/common/utiles/enum';
+import { AcademicYearEnum, UserRolesEnum } from '@utils/enum';
+import { IsEmail, IsEnum, IsNotEmpty,IsNumber,IsString, IsStrongPassword, Max, Min, MinLength, ValidateIf } from 'class-validator';
 
 export class SignInDTO {
   @IsString()
@@ -9,76 +9,47 @@ export class SignInDTO {
 
   @IsString()
   @IsNotEmpty()
-  @Matches(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/, {
-    message:// password cannt be sequence of numbers or letters 
-      'password must be at least 8 characters long and contain at least one letter and one number',
-  })//!test
   password: string;
 }
 
-
-export class UserSignUpDto {
-  @IsString()
-  @IsNotEmpty()
-  @IsEmail()
-  email: string;
+ export class CreateUserDto {
+   @IsString()
+   @IsNotEmpty()
+   @IsEmail()
+   email: string;
   
 
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(3)
-  fullName: string;
+   @IsString()
+   @IsNotEmpty()
+   @MinLength(3)
+   fullName: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @Matches(/^(010|011|012|015)[0-9]{8}$/)//!test
-  phone: string;
+   @IsString()
+   @IsNotEmpty()
+   // @Matches(...)  TO DO: Add regex for password complexity
+   password: string;
 
-  @IsString()
-  @IsNotEmpty()
-  // @Matches(...) 
-  password: string;
+   @IsEnum(UserRolesEnum)
+   @IsNotEmpty()
+   role: UserRolesEnum; 
 
-  @IsString()
-  @IsNotEmpty()
-  @IsEnum(GenderEnum)
-  gender: GenderEnum;
-}
+   @IsString()
+   department: string;
 
-export class StudentSignUpDto {
-  @IsString()
-  @IsNotEmpty()
-  @IsEmail()
-  email: string;
-  
-  @IsString()
-  @IsNotEmpty()
-  academicId: string; // #ST-2022-1
 
-  @IsNumber()
-  @IsNotEmpty()
-  currentYear: number;
-
+     // دي بتفعّل لو الـ Role اللي اختاره الطالب
+  @ValidateIf((o) => o.role === UserRolesEnum.STUDENT|| o.role === UserRolesEnum.PROFESSOR)
   @IsString()
   @IsNotEmpty()
-  @MinLength(3)
-  fullName: string;
+  academicId?: string;
 
-  @IsString()
+  @ValidateIf((o) => o.role === UserRolesEnum.STUDENT)
+  @IsEnum(AcademicYearEnum)
   @IsNotEmpty()
-  @Matches(/^(010|011|012|015)[0-9]{8}$/)//!test
-  phone: string;
+  currentYear?: AcademicYearEnum; 
 
-  @IsString()
-  @IsNotEmpty()
-  // @Matches(...) 
-  password: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @IsEnum(GenderEnum)
-  gender: GenderEnum;
-}
+ }
 
 export class ConfirmEmailDto {
     @IsString()

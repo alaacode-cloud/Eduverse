@@ -1,105 +1,71 @@
-import { UserRepository } from './../../models/user/user.repository';
-import { Injectable ,ConflictException,InternalServerErrorException, UnauthorizedException, NotFoundException, BadRequestException} from '@nestjs/common';
-import { SignInDTO, UserSignUpDto,StudentSignUpDto } from './dto/authDto';
+import { UserRepository } from '@models/user/user.repository';
+import { Injectable,InternalServerErrorException, UnauthorizedException, NotFoundException, BadRequestException} from '@nestjs/common';
 import { compare, generateOTP, hashPassword } from 'src/common/utiles/helpers';
-import { User } from 'src/models';
 import { sendEmail } from 'src/common/utiles/email.utils';
 import { TokenService } from 'src/common/service/token.service';
+import { Types } from 'mongoose';
+import { StatusEnum, UserRolesEnum } from '@utils/enum';
+import { StudentService } from '../student/student.service';
+import { CreateUserDto, SignInDTO } from './dto/authDto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly tokenService: TokenService,
+    private readonly studentService: StudentService
   ) {}
 
-  // async usersignUp(signUpDto: UserSignUpDto) {
-  //   const email = await this.userRepository.findByEmail(signUpDto.email)
-  //   if (email) {
-  //     throw new ConflictException('Email already exists, please use another email')
-  //   }
-    
-  //   const otp = generateOTP(6)
-    
-  //   const emailSent = await sendEmail({
-  //     to: signUpDto.email,
-  //     from:'"Eduverse System" <no-reply@eduverse.com>',
-  //     subject: 'Email Confirmation',
-  //     html: `<h1>Welcome ${signUpDto.fullName}</h1><p>Please confirm your email using this OTP: ${otp}</p>`
-  //   })
-  //   if (!emailSent) {
-  //     throw new InternalServerErrorException('Failed to send email, please try again')
-  //   }
-    
-  //    const createdUser = await this.userRepository.create({
-  //     fullName: signUpDto.fullName,
-  //     email: signUpDto.email,
-  //     password: await  hashPassword(signUpDto.password),
-  //     phone : signUpDto.phone,
-  //     gender: signUpDto.gender,
-  //     isVerified: false,
-  //     emailOtp: {
-  //       code: otp,
-  //       expiresAt: new Date(Date.now() + 10 * 60 * 1000) // OTP expires in 10 minutes
-  //     }
-  //   })
-  //   const {  emailOtp, ...Obj } = JSON.parse(
-  //     JSON.stringify(createdUser),
-  //   );
+  async createUser(createUserDto: CreateUserDto ) {
 
-  //   return Obj as User;
-  // }
   
- async studentsignUp(signUpDto: StudentSignUpDto) {
-    const email = await this.userRepository.findByEmail(signUpDto.email)
-    if (email) {
-      throw new ConflictException('Email already exists, please use another email')
-    }
-    
-    const otp = generateOTP(6)
-    
-    const emailSent = await sendEmail({
-      to: signUpDto.email,
-      from:'"Eduverse System" <no-reply@eduverse.com>',
-      subject: 'Email Confirmation',
-      html: `<h1>Welcome ${signUpDto.fullName}</h1><p>Please confirm your email using this OTP: ${otp}</p>`
-    })
-    if (!emailSent) {
-      throw new InternalServerErrorException('Failed to send email, please try again')
-    }
-    
-     const createdUser = await this.userRepository.create({
-      fullName: signUpDto.fullName,
-      email: signUpDto.email,
-      academicId: signUpDto.academicId,
-      currentYear: signUpDto.currentYear,
-      password: await  hashPassword(signUpDto.password),
-      phone : signUpDto.phone,
-      gender: signUpDto.gender,
-      isVerified: false,
-      emailOtp: {
-        code: otp,
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000) // OTP expires in 10 minutes
+     if(createUserDto.role === UserRolesEnum.ADMIN){
+        const existingAdmin = await this.userRepository.findOne({ filter: { role: UserRolesEnum.ADMIN } });
+        if (existingAdmin) {
+          throw new BadRequestException('An admin account already exists. Only one admin is allowed.');
+        }
+        return this.userRepository.create({
+          fullName: createUserDto.fullName,
+          email: createUserDto.email,
+          password: await hashPassword(createUserDto.password),
+          role: createUserDto.role
+        });
       }
-    })
-    const {  emailOtp, ...Obj } = JSON.parse(
-      JSON.stringify(createdUser),
-    );
 
-    return Obj as User;
+     switch (createUserDto.role) {
+      
+      case UserRolesEnum.STUDENT:
+         if (!createUserDto.currentYear|| !createUserDto.academicId) {
+          throw new BadRequestException('currentYear and academicId are required ');
+        }
+        return this.studentService.createStudent({
+          fullName: createUserDto.fullName,
+          email: createUserDto.email,
+          password: createUserDto.password, // الباسورد هنا مشفر جاهز من الـ Auth Service
+          academicId: createUserDto.academicId,
+          currentYear: createUserDto.currentYear, // <--- بدل الـ 1 الثابت، حطينا المتغير اللي جاي من الـ DTO
+        });
+
+      case UserRolesEnum.PROFESSOR:
+        throw new BadRequestException('Professor registration is not implemented yet.');
+ 
+      default:
+        throw new BadRequestException('Invalid role selected.');
+    }
+
+
   }
-
 
   async signIn(signInDTO: SignInDTO) {
 
   const user = await this.userRepository.findByEmail(signInDTO.email);
-  
+ 
   if (!user || !(await compare(signInDTO.password, user.password))) {
     throw new UnauthorizedException('Invalid credentials');
   }
 
    if (!user.isVerified) {
-  const otp = generateOTP(6);
+   const otp = generateOTP(6);
 
   const emailSent = await sendEmail({
       to: user.email,
@@ -113,7 +79,7 @@ export class AuthService {
     if (!emailSent) {
       throw new InternalServerErrorException('Failed to send email, please try again');
     }
-   await this.userRepository.Update({
+   await this.userRepository.update({
         filter: { email: user.email },
         update: {
           emailOtp: {
@@ -125,10 +91,15 @@ export class AuthService {
     throw new UnauthorizedException('You should confirm your email first, new OTP sent to your email')
 
    }
-   if (!await compare(signInDTO.password, user.password)) {
-      throw new UnauthorizedException('Invalid credentials')
+  if (user.status === StatusEnum.INACTIVE) {
+      await this.userRepository.update({
+        filter: { email: user.email },
+        update: {
+          status: StatusEnum.ACTIVE
+        }
+      });
     }
-  return this.tokenService.generateAuthTokens(user); //To DO Ask about token
+  return this.tokenService.generateAuthTokens(user); 
   }
 
   async confirmEmail(email: string, otp: string) {
@@ -141,12 +112,14 @@ export class AuthService {
       throw new BadRequestException('OTP expired, request a new one')
     }
 
-    await this.userRepository.Update({
+    await this.userRepository.update({
       filter: { email },
       update: {
         $unset: { emailOtp: "" },
-        isVerified: true
+        isVerified: true,
+        status: StatusEnum.ACTIVE
       }
+
     })
 
     return true
@@ -178,7 +151,7 @@ export class AuthService {
       throw new InternalServerErrorException('Failed to send email, please try again')
     }
 
-    await this.userRepository.Update({
+    await this.userRepository.update({
       filter: { email },
       update: {
         emailOtp: {
@@ -189,13 +162,13 @@ export class AuthService {
     })
     return true
   }
- // To Do Ask abouy headers and refresh token
+ // To Do Ask about headers and refresh token
   async refreshToken(token: string) {
     const payload = this.tokenService.verify({
       token,
       options: { secret: process.env.JWT_REFRESH_SECRET }
     })
-    const user = await this.userRepository.findById({ _id: payload._id })
+    const user = await this.userRepository.findOne({filter:{id: new Types.ObjectId(payload._id)}})
     if (!user) {
       throw new UnauthorizedException('Invalid token')
     }
@@ -225,7 +198,7 @@ export class AuthService {
        throw new InternalServerErrorException('Failed to send email, please try again')
      }
 
-     await this.userRepository.Update({
+     await this.userRepository.update({
        filter: { email: email },
        update: {
          emailOtp: {
@@ -250,7 +223,7 @@ export class AuthService {
     if (isSamePassword) {
       throw new BadRequestException('Your new password cannot be the same as the old password')
     }
-    await this.userRepository.Update({
+    await this.userRepository.update({
       filter: { email: email },
       update: {
         $unset: {

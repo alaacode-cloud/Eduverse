@@ -7,7 +7,9 @@ import {
   Types,
   UpdateQuery,
   FilterQuery,
+  ObjectId,
 } from 'mongoose'
+import { filter } from 'rxjs'
 
 
 export abstract class AbstractRepository<T> {
@@ -41,21 +43,23 @@ export abstract class AbstractRepository<T> {
     return await this.model.findOne(filter, projection, options)
   }
 
-  async findById({
-    _id,
-    projection = {},
-    options = {},
-  }: {
-    _id: Types.ObjectId
-    projection?: ProjectionType<T>
+  async findById(
+    id: string | Types.ObjectId,
+    projection?: ProjectionType<T>,
     options?: QueryOptions<T>
-  }) {
-    return await this.model.findById(_id, projection, options)
+  ) {
+    return await this.model.findById(id, projection, options);
   }
 
-  async Update({
-    filter,
-    update,
+
+  async findAll(): Promise<T[]> {
+    return await this.model.find().exec();
+  }
+
+
+  async update({
+    filter={},
+    update={},
     options = {},
   }: {
     filter: FilterQuery<T>
@@ -88,7 +92,7 @@ export abstract class AbstractRepository<T> {
   }
 
   async findOneAndDelete({
-    filter,
+    filter={},
     options = {},
   }: {
     filter?: FilterQuery<T>
@@ -98,8 +102,8 @@ export abstract class AbstractRepository<T> {
   }
 
   async findOneAndUpdate({
-    filter,
-    update,
+    filter={},
+    update={},
     options = {},
   }: {
     filter: FilterQuery<T> 
@@ -110,7 +114,7 @@ export abstract class AbstractRepository<T> {
   }
 
   async deleteOne({
-    filter,
+    filter={},
     options = {},
   }: {
     filter: FilterQuery<T>
@@ -120,7 +124,7 @@ export abstract class AbstractRepository<T> {
   }
 
   async deleteMany({
-    filter,
+    filter={},
     options = {},
   }: {
     filter: FilterQuery<T>

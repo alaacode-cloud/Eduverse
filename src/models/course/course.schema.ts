@@ -1,55 +1,44 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { MongooseModule, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
-import { AcademicYearEnum } from 'src/common/utiles/enum';
+import { SemesterEnum, AcademicYearEnum } from '@utils/enum';
+import type { IMarks } from '@interfaces/IMarks';
+
 
 
 @Schema({ timestamps: true })
-export class Course  {
+export class Course {
+  _id?: Types.ObjectId;
 
-  @Prop({type: String, required: true, unique: true })
+  @Prop({ type: String, required: true, unique: true })
   code: string; // CS-402  ==> (4 --> refers to course level, 2 --> refers to track number)
 
-  @Prop({type: String, required: true })
+  @Prop({ type: String, required: true })
   name: string; // Advanced Machine Learning
 
-  @Prop({type: String, required: true })
+  @Prop({ type: String, required: true })
   description: string;
 
-  @Prop({type: Number, required: true })
+  @Prop({ type: Number, required: true })
   creditHours: number;
-  
-  @Prop({ type: Number, required: true, min: 1, max: 2 })
-  //@IsInt() 
-  //@Min(1)  
-  //@Max(2)// to do    =====   Validation قبل ما يوصل للداتابيز  
-  semester: number;
-  
-  
-  // Relations
-  // المادة مرتبطة بـ "بروفايل الدكتور" مش بحساب الدخول (اليوزر)
-  @Prop({ type: Types.ObjectId, ref: 'ProfessorProfile', required: true })
-  professorId: Types.ObjectId;
 
-  @Prop({ type: Number, required: true, enum: AcademicYearEnum ,default:1 })
-  year: number; // السنة
+  @Prop({ type: Number, required: true, enum: AcademicYearEnum })
+  academicYear: AcademicYearEnum; // الكورس ده لتالة أي سنة؟ (1, 2, 3, 4)
+
+  // الكورس ده بيتدرس في فصل انهي؟ (مفيش SUMMER هنا لأن الكورس نفسه ثابت)
+  @Prop({ type: String, required: true, enum: [SemesterEnum.First, SemesterEnum.Second] })
+  semester: SemesterEnum;
+
+  // استخدمنا الـ Interface اللي عملناها في الـ Utils عشان نضمن التوزيع الصح
+  @Prop({
+    type: { midterm: Number, final: Number, practical: Number, project: Number },
+    required: true
+  })
+  marksDistribution: IMarks;
 
 }
 
 
+
 export const CourseSchema = SchemaFactory.createForClass(Course);
 
-CourseSchema.virtual('materials', {
-  ref: 'CourseMaterial',
-  localField: '_id',
-  foreignField: 'courseId',
-});
-
-CourseSchema.virtual('assessments', {
-  ref: 'CourseAssessment',
-  localField: '_id',
-  foreignField: 'courseId',
-});
-
-// مهم جداً عشان الـ JSON يرجع الـ Virtuals
-CourseSchema.set('toJSON', { virtuals: true });
-CourseSchema.set('toObject', { virtuals: true });
+CourseSchema.index({ targetYear: 1, targetSemester: 1 });
