@@ -9,10 +9,10 @@ export enum StudentStatusEnum {
   DROPPED = 'DROPPED',
 }
 export enum AcademicYearEnum {
-  YEAR_1 = '1',
-  YEAR_2 = '2',
-  YEAR_3 = '3',
-  YEAR_4 = '4',
+  YEAR_1 = 'YEAR_1',
+  YEAR_2 = 'YEAR_2',
+  YEAR_3 = 'YEAR_3',
+  YEAR_4 = 'YEAR_4',
 }
 
 export enum UserRolesEnum {

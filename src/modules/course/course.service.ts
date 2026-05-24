@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { IMarks } from '@interfaces/IMarks';
 import { Types } from 'mongoose';
 import { AcademicYearEnum, SemesterEnum } from '@utils/enum';
-import { IPagination } from '@decorators/pagination.decorator';
+import type { IPagination } from '@decorators/pagination.decorator';
 import { CourseRepository } from '@models/index';
 import { CreateCourseDto } from './dto/createCourse.dto';
 import { UpdateCourseDto } from './dto/updateCourse.dto';
@@ -25,13 +25,13 @@ export class CourseService {
       code: dto.code,
       academicYear: dto.academicYear,
       description: dto.description,
-      semester: dto.Semester,
+      semester: dto.semester,
       creditHours: dto.creditHours,
       marksDistribution: marksDistribution,
     });
   }
 
-  async getAllCourses(pagination: IPagination, search?: string) {
+     async getAllCourses(pagination: IPagination, search?: string) {
     const { skip, limit } = pagination;
 
     const filter: any = {};
@@ -58,7 +58,7 @@ export class CourseService {
       }
     };
   }
-
+  
   async findCourseById(id: Types.ObjectId) { //To Do Profile
     const course = await this.courseRepo.findOne({ filter: { _id: id } });
     if (!course) throw new NotFoundException('Course not found');
@@ -78,7 +78,6 @@ export class CourseService {
     return { message: 'Course deleted successfully' };
   }
 
-   // 6. جلب كورسات سنة معينة وفصل معين (للطالب في الـ Registration)
   async getCoursesByYearAndSemester(year: AcademicYearEnum, semester: SemesterEnum) {
     return this.courseRepo.findByYearAndSemester(year, semester);
   }

@@ -24,14 +24,14 @@ export class GroupRepository extends AbstractRepository<Group> {
   }
 
   // عين الطالب ده كـ Group Admin (الbusiness rule بتقول: واحد بس)
-  async assignGroupAdmin(groupId: Types.ObjectId, userId: Types.ObjectId): Promise<Group | null> {
+  async assignGroupAdmin(groupId: Types.ObjectId, userId: Types.ObjectId|string): Promise<Group | null> {
     return this.groupModel
       .findByIdAndUpdate(groupId, { adminId: userId }, { new: true })
       .exec();
   }
 
   // الطالب ينضم للجروب (نضيفه في الـ Array)
-  async addMember(groupId: Types.ObjectId, userId: Types.ObjectId): Promise<Group | null> {
+  async addMember(groupId: Types.ObjectId, userId: Types.ObjectId|string): Promise<Group | null> {
     return this.groupModel
       .findByIdAndUpdate(groupId, { $addToSet: { members: userId } }, { new: true })
       // $addToSet أحسن من $push عشان ميدخلش نفس الطالب مرتين
@@ -39,7 +39,7 @@ export class GroupRepository extends AbstractRepository<Group> {
   }
 
   // الطالب يخرج من الجروب
-  async removeMember(groupId: Types.ObjectId, userId: Types.ObjectId): Promise<Group | null> {
+  async removeMember(groupId: Types.ObjectId, userId: Types.ObjectId|string): Promise<Group | null> {
     return this.groupModel
       .findByIdAndUpdate(groupId, { $pull: { members: userId } }, { new: true })
       .exec();

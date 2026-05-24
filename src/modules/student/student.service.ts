@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { calculateWeightedGPA, hashPassword } from '@utils/helpers';
 import { AcademicYearEnum, UserRolesEnum } from '@utils/enum';
@@ -7,6 +7,7 @@ import { CourseAssessmentRepository, CourseRepository, StudentRepository, UserRe
 import { IPagination } from '@decorators/pagination.decorator';
 import { PopulatedStudentProfile } from '@interfaces/IstudentProfile';
 import { UpdateStudentDto } from './dto/update-student.dto';
+import { CreateStudentDto } from './dto/create-student.dto';
 
 @Injectable()
 export class StudentService {
@@ -17,38 +18,33 @@ export class StudentService {
     private readonly assessmentRepository: CourseAssessmentRepository,
   ) { }
 
-  async createStudent(payload: {
-    fullName: string;
-    email: string;
-    password: string;
-    academicId: string;
-    currentYear: AcademicYearEnum;
-  }) {
+  async createStudent(createStudentDto: CreateStudentDto) {
 
 
-    const existingUser = await this.userRepository.findByEmail(payload.email);
+    const existingUser = await this.userRepository.findByEmail(createStudentDto.email);
     if (existingUser) {
       throw new BadRequestException('Email already in use');
     }
-    const hashedPassword = await hashPassword(payload.password);
+    const hashedPassword = await hashPassword(createStudentDto.password);
 
-    const existingStudent = await this.studentRepository.findOne({ filter: { academicId: payload.academicId } });
+    const existingStudent = await this.studentRepository.findOne({ filter: { academicId: createStudentDto.academicId } });
     if (existingStudent) {
       throw new BadRequestException('This Academic ID is already registered in the system.');
     }
 
     const newUser = await this.userRepository.create({
-      fullName: payload.fullName,
-      email: payload.email,
+      fullName: createStudentDto.fullName,
+      email: createStudentDto.email,
       password: hashedPassword,
       role: UserRolesEnum.STUDENT,
     });
 
     // 2. إنشاء السجل الأكاديمي (Student Profile) وربطه بالـ User
     const newStudent = await this.studentRepository.create({
-      userId: newUser._id,
-      academicId: payload.academicId,
-      currentYear: payload.currentYear,
+      userId: newUser._id.toString(),
+      academicId: createStudentDto.academicId,
+      currentYear: createStudentDto.currentYear,
+
     });
 
     return {
@@ -95,9 +91,11 @@ export class StudentService {
 
         // رجع بيانات الطالب مع الـ GPA
         const studentObj = student.toObject();
+        const { _id,createdAt,updatedAt, __v,...rest } = studentObj;
         return {
-          ...studentObj,
-          gpa: gpa, // <--- الآن عمود الـ GPA هيبان في الجدول!
+          ...rest, // 2. نرجع باقي البيانات
+          gpa: gpa,
+
         };
       })
     );
@@ -113,11 +111,20 @@ export class StudentService {
     };
   }
 
-  async getStudentProfileById(id: string) {
+  async getStudentProfileById(id: string|Types.ObjectId, currentUser: any) {
     // 1. جيب بيانات الطالب الأساسية مع بيانات الـ User
-    const student = await this.studentRepository.findStudentProfileById(id) as PopulatedStudentProfile & { _id: Types.ObjectId } | null;
+    const student = await this.studentRepository.findStudentProfileById(id) as PopulatedStudentProfile & { _id: Types.ObjectId|string } | null;
     if (!student) throw new NotFoundException('Student not found');
 
+    if (currentUser.role === UserRolesEnum.STUDENT) {
+
+    const profileUserId = student.userId._id.toString();
+    const loggedInUserId = currentUser._id.toString(); 
+
+    if (profileUserId !== loggedInUserId) {
+      throw new ForbiddenException('You are not allowed to view other students profiles');
+    }
+  }
     // 2. جيب كل سجلات التقييم اللي الطالب "نجح" فيها (مؤثرين في الـ CGPA والساعات)
     const passedRecords = await this.assessmentRepository.findStudentCumulativeRecords(student._id);
 
@@ -172,7 +179,10 @@ export class StudentService {
 
   async updateStudentData(id: string, updateStudentDto: UpdateStudentDto) {
     // أولاً: نتأكد إن الطالب موجود
-    const student = await this.studentRepository.findById(id);
+    const student = await this.studentRepository.findOne({
+        filter: {
+             userId: id  // لو الطالب باعت الـ ID بتاع الـ User اللي خده من اللوجين
+           }});
 
     if (!student) {
       throw new NotFoundException('Student not found');
@@ -213,13 +223,13 @@ export class StudentService {
   }
 
   async deleteStudentById(id: string) {
-    const student = await this.studentRepository.findById(id);
+    const student = await this.studentRepository.findOne({ filter: { userId: id } });
     if (!student) {
       throw new NotFoundException('Student not found');
     }
 
     // ثانياً: نمسح البروفايل الأكاديمي
-    await this.studentRepository.deleteOne({ filter: { _id: id } });
+    await this.studentRepository.deleteOne({ filter: { _id: student._id } });
 
     // ثالثاً: نمسح حساب الـ User المرتبط بيه
     await this.userRepository.deleteOne({ filter: { _id: student.userId } });
@@ -229,9 +239,10 @@ export class StudentService {
     };
   }
 
-  async getEnrolledCourses(studentId: Types.ObjectId) {
+  async getEnrolledCourses(studentId: string) {
 
-    const student = await this.studentRepository.findByUserId(studentId);
+    const student = await this.studentRepository.findOne({filter: {userId: studentId}
+    });
 
     if (!student) {
       throw new NotFoundException('Student not found');

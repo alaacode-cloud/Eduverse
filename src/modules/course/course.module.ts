@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import {  Course, CourseRepository, CourseSchema, User, UserModel, UserRepository } from '@models/index';
+import {  Course, CourseRepository, CourseSchema, User,UserRepository, UserSchema } from '@models/index';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { CourseController } from './course.controller';
@@ -12,7 +12,7 @@ import { CourseService } from './course.service';
           MongooseModule.forFeature([{
                name: Course.name, schema: CourseSchema
           }, {
-               name: User.name, schema: UserModel
+               name: User.name, schema: UserSchema
           }]),
           
       ],

@@ -33,10 +33,6 @@ export class SignInDTO {
    @IsNotEmpty()
    role: UserRolesEnum; 
 
-   @IsString()
-   department: string;
-
-
      // دي بتفعّل لو الـ Role اللي اختاره الطالب
   @ValidateIf((o) => o.role === UserRolesEnum.STUDENT|| o.role === UserRolesEnum.PROFESSOR)
   @IsString()

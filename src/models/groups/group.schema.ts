@@ -32,10 +32,3 @@ export class Group  {
 
 export const GroupSchema = SchemaFactory.createForClass(Group);
 
-
-export const GroupModel = MongooseModule.forFeature([
-  {
-    name: Group.name,
-    schema: GroupSchema,
-  },
-]);

@@ -59,17 +59,16 @@ export class AuthService {
   async signIn(signInDTO: SignInDTO) {
 
   const user = await this.userRepository.findByEmail(signInDTO.email);
- 
   if (!user || !(await compare(signInDTO.password, user.password))) {
+  
     throw new UnauthorizedException('Invalid credentials');
   }
 
-   if (!user.isVerified) {
-   const otp = generateOTP(6);
-
-  const emailSent = await sendEmail({
-      to: user.email,
+   if (user.status === StatusEnum.INACTIVE) {
+      const otp = generateOTP(6);
+      const emailSent = await sendEmail({
       from:'"Eduverse System" <no-reply@eduverse.com>',
+      to: user.email,
       subject: 'Login OTP Verification',
       html: `<h1>Hello ${user.fullName}</h1>
              <p>Your OTP is: <strong>${otp}</strong></p>
@@ -91,14 +90,7 @@ export class AuthService {
     throw new UnauthorizedException('You should confirm your email first, new OTP sent to your email')
 
    }
-  if (user.status === StatusEnum.INACTIVE) {
-      await this.userRepository.update({
-        filter: { email: user.email },
-        update: {
-          status: StatusEnum.ACTIVE
-        }
-      });
-    }
+ 
   return this.tokenService.generateAuthTokens(user); 
   }
 
@@ -116,7 +108,6 @@ export class AuthService {
       filter: { email },
       update: {
         $unset: { emailOtp: "" },
-        isVerified: true,
         status: StatusEnum.ACTIVE
       }
 
@@ -132,7 +123,7 @@ export class AuthService {
       throw new NotFoundException('User not found')
     }
 
-    if (user.isVerified) {
+    if (user.status === StatusEnum.INACTIVE) {
       throw new BadRequestException('Email already verified')
     }
 

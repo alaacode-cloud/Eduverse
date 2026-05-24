@@ -34,9 +34,14 @@ export class StudentRepository extends AbstractRepository<Student> {
     return this.model.countDocuments(filter || {}).exec();
   }
 
-   async findStudentProfileById(id: string): Promise<PopulatedStudentProfile | null> {
-    return this.model.findById(id)
-      .populate('userId') // <--- السحر كله هنا، هيجيب بيانات اليوزر كلها
+   async findStudentProfileById(id: string|Types.ObjectId): Promise<PopulatedStudentProfile | null> {
+    return this.model.findOne({
+        $or: [
+      { _id: id },       // لو الأدمن باعت الـ ID بتاع الـ Student
+      { userId: id }     // لو الطالب باعت الـ ID بتاع الـ User اللي خده من اللوجين
+    ]}
+    )
+      .populate('userId') 
       .exec() as Promise<PopulatedStudentProfile | null>;
   }
 

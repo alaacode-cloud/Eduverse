@@ -1,4 +1,4 @@
-import { MongooseModule, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import { SemesterEnum, AcademicYearEnum } from '@utils/enum';
 import type { IMarks } from '@interfaces/IMarks';
@@ -7,7 +7,7 @@ import type { IMarks } from '@interfaces/IMarks';
 
 @Schema({ timestamps: true })
 export class Course {
-  _id?: Types.ObjectId;
+  _id: Types.ObjectId;
 
   @Prop({ type: String, required: true, unique: true })
   code: string; // CS-402  ==> (4 --> refers to course level, 2 --> refers to track number)
@@ -21,7 +21,7 @@ export class Course {
   @Prop({ type: Number, required: true })
   creditHours: number;
 
-  @Prop({ type: Number, required: true, enum: AcademicYearEnum })
+  @Prop({ type: String, required: true, enum: AcademicYearEnum })
   academicYear: AcademicYearEnum; // الكورس ده لتالة أي سنة؟ (1, 2, 3, 4)
 
   // الكورس ده بيتدرس في فصل انهي؟ (مفيش SUMMER هنا لأن الكورس نفسه ثابت)

@@ -2,6 +2,8 @@ import { Controller, Post, Body, Headers } from '@nestjs/common';
 import { ConfirmEmailDto, CreateUserDto, forgotPasswordDto, ResendOtpDto, resetPasswordDto, SignInDTO } from './dto/authDto';
 import { Throttle } from "@nestjs/throttler";
 import { AuthService } from './auth.service';
+import { Auth } from '@decorators/authDecorator';
+import { UserRolesEnum } from '@utils/enum';
 
 
 
@@ -13,6 +15,7 @@ export class AuthController {
     private readonly authService: AuthService,
   ) {}
 
+    @Auth(UserRolesEnum.ADMIN)
     @Post('create-account')
     async createUser(@Body() createUserDto: CreateUserDto) {
         return this.authService.createUser(createUserDto);

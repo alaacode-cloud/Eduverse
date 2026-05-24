@@ -58,10 +58,3 @@ export const CourseAssessmentSchema = SchemaFactory.createForClass(CourseAssessm
 CourseAssessmentSchema.index({ studentId: 1, academicYear: 1, semesterType: 1 });
 CourseAssessmentSchema.index({ studentId: 1, courseId: 1 });
 
-export const CourseAssessmentModel = MongooseModule.forFeature([
-  {
-    name: CourseAssessment.name,
-    schema: CourseAssessmentSchema,
-  },
-]);
-

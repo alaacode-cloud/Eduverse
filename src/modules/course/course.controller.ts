@@ -3,13 +3,12 @@ import { Types } from 'mongoose';
 import { UserRolesEnum } from '@utils/enum';
 import { Auth } from '@decorators/authDecorator';
 import { Pagination} from '@decorators/pagination.decorator';
-import { AuthGuard } from '@guards/auth.guard';
 import { CourseService } from './course.service';
 import { CreateCourseDto } from './dto/createCourse.dto';
 import { UpdateCourseDto } from './dto/updateCourse.dto';
 import type{IPagination} from '@decorators/pagination.decorator';
 
-@Controller('course')
+@Controller('courses')
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
@@ -25,9 +24,9 @@ export class CourseController {
     return this.courseService.getAllCourses(pagination, search);
   }
 
-  @UseGuards(AuthGuard)
+  @Auth(UserRolesEnum.ADMIN)
   @Get(':id')
-  GetStudentCourses(@Param('id') id: Types.ObjectId) {
+  findCourseById(@Param('id') id: Types.ObjectId) {
     return this.courseService.findCourseById(id);
   }
 

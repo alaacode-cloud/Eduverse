@@ -26,7 +26,7 @@ export class CourseAssessmentRepository extends AbstractRepository<CourseAssessm
    * Retrieves ALL PASSED records for a student across all years.
    * THIS IS THE ONLY FUNCTION USED FOR CALCULATING CUMULATIVE GPA.
    */
-  async findStudentCumulativeRecords(studentId: Types.ObjectId): Promise<CourseAssessment[]> {
+  async findStudentCumulativeRecords(studentId: Types.ObjectId|string): Promise<CourseAssessment[]> {
     return this.courseAssessment.find({ studentId, isPassed: true }).exec();
   }
 

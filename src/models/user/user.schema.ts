@@ -38,19 +38,10 @@ export class User {
           },default: null,})
     emailOtp: {code: string ,expiresAt: Date} ;
 
-  @Prop({ type: Boolean, default: false })
-  isVerified: boolean;
 
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
 
 
-//مكانها مش هنا في ال auth.module.ts عشان نستخدمها في ال repository
 
-export const UserModel = MongooseModule.forFeature([
-  {
-    name: User.name,
-    schema: UserSchema,
-  },
-]);
